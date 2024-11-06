@@ -1,0 +1,139 @@
+#include <iostream>
+#include <vector>
+#include <cmath>
+#include <cstdlib>
+#include <ctime>
+#include <random>
+
+using namespace std;
+
+vector<vector<double>> X = {{2.0, 7.0, 5.0, 55.0, 5.0, 3.0, 4.0, 0.0, 0.0},
+{22,5.1,6.7,3.9,5,53,20,20.47,10.92}, 
+{24,6.3,8.6,2.8,4,55,19.82,4.08,9.42}, 
+{20,4.7,2.7,2.7,0,85,20.98,6.12,9.01}, 
+{25,4.9,12,3.2,3,96,9.8,18.83,10.51}, 
+{22,6.5,11.7,3.4,1,99,13.05,20.96,10.81},
+{22,6.1,7.8,3,1,108,10.49,10.85,10.02}, 
+{24,8.6,2.4,1.4,1,86,11.06,18.88,8.78}, 
+{19,5.8,8.2,2,3,44,14.65,5.31,9.37}, 
+{20,6.9,0.9,3.8,5,108,7.77,14.83,9.8},
+{24,7.2,0.4,1.7,0,33,6.07,3.74,7.78},
+{20,4.1,3.1,2.1,3,8,21.69,10.69,8.79}
+,{20,7.3,5.6,2.3,1,87,17.65,18.35,10.32}
+,{25,4.9,10.4,2.3,4,7,7.02,19.21,9.62}
+,{22,8.8,8.7,2.8,2,6,13.88,10.47,8.64}
+,{21,4.7,8.9,3.8,3,35,8.09,6.76,9.65}
+,{25,6.1,5.1,1.7,3,17,14.71,6.37,7.47}
+,{25,4.4,4.2,1.4,0,2,13.79,16.48,8.61}
+,{20,9,4.5,1.6,0,27,18.67,17.92,10.17}
+,{23,6.5,11.9,3.7,3,69,16.58,21.66,7.88}
+,{22,7,0.5,2.9,1,107,9.29,8.42,7.74}
+,{19,4.3,10.4,1.9,2,43,12.9,20.47,10.8}
+,{25,7.7,6.9,3.4,0,20,5.74,13.58,7.84}
+,{21,5,5.3,3.6,1,27,4.1,9.97,8.04}
+,{23,8.5,8.7,3.5,4,103,10.63,3.26,10.88}
+,{23,5,5.8,3.8,0,53,6.08,15.76,9.94}
+,{19,5,10.5,1.8,1,53,15.56,17,9.8}
+,{25,4.2,10.8,3.3,1,64,13.29,8.92,10.41}
+,{21,6.4,5.1,2.4,2,99,7.03,9.62,7.46}
+,{22,6.8,3.3,3.5,2,20,13.89,15.36,9.82}
+,{18,4.3,7.1,3.2,4,106,9.64,3.44,9.01}
+,{21,7.9,10.9,3.3,1,98,18.11,5.1,10.32}
+,{19,6.3,2.5,3,5,12,9.4,17.52,9.03}
+,{23,6.6,7.5,1.5,1,56,3.91,17.22,9.48}
+,{22,6.2,7.6,2.6,2,48,3.76,11.75,8.91}
+,{21,6,8.8,4,5,117,6.79,6.53,8.91}
+,{18,6.8,1.6,3.8,0,53,6.34,21.12,10.07}
+,{18.0,4.8,8.6,1.1,0.0,9.0,10.28,8.13,9.51} 
+,{20,4.9,10.9,1.5,3,52,9.72,9.04,9.53} 
+,{20,8.3,2.2,1.4,2,43,19.19,17.37,8.8} 
+,{24,8.7,2.9,3.2,3,46,12.68,8.37,9.12} 
+,{19,5.9,11.7,3.5,5,52,12.53,3.2,9.98} 
+,{25,5.4,2.2,1.6,2,73,1.87,21.06,10.3}};
+    
+vector<double> y = {9,5,9,3,9,6,4,7,8,6,5,6,5,8,1,7,10,10,2,9,1,10,6,9,1,4,4,9,5,5,6,1,1,9,3,4,1,9,8,2,8,7,6};
+
+vector<vector<double>> weights1(9, vector<double>(4));
+vector<double> weights2(4);
+
+
+double sigmoid(double x) {
+    return 1.0 / (1.0 + exp(-x));
+}
+
+double sigmoid_derivative(double x) {
+    return x * (1.0 - x);
+}
+// normalizasyon ve çıktı kontrolu
+// kk fold valid 
+double predict(const vector<vector<double>>& weights1, const vector<double>& weights2, const vector<double>& input_data) {
+    vector<double> layer1(4);
+    for (size_t k = 0; k < 4; ++k) {
+        layer1[k] = 0.0;
+        for (size_t l = 0; l < 9; ++l) {
+            layer1[k] += (input_data[l]/117) * weights1[l][k];
+        }
+        layer1[k] = sigmoid(layer1[k]);
+    }
+    double output = 0.0;
+    for (size_t k = 0; k < 4; ++k)
+        output += layer1[k] * weights2[k];
+    output = sigmoid(output);
+    return output;
+}
+
+int main() {
+    srand(static_cast<unsigned>(time(0)));
+    random_device rd;
+    mt19937 gen(rd());
+    uniform_real_distribution<> dis(0.0, 1.0);
+
+    for (size_t i = 0; i < 9; ++i)
+        for (size_t j = 0; j < 4; ++j)
+            weights1[i][j] = dis(gen);
+
+    for (size_t i = 0; i < 4; ++i)
+        weights2[i] = dis(gen);
+
+    double learning_rate = 0.01;
+    int epochs = 50000;
+
+    for (int i = 0; i < epochs; ++i) {
+        for (size_t j = 0; j < X.size(); ++j) {
+            vector<double> layer1(4);
+            for (size_t k = 0; k < 4; ++k) {
+                layer1[k] = 0.0;
+                for (size_t l = 0; l < 9; ++l) {
+                    layer1[k] += (X[j][l] / 117) * weights1[l][k];
+                }
+                layer1[k] = sigmoid(layer1[k]);
+            }
+            double output = 0.0;
+            for (size_t k = 0; k < 4; ++k)
+                output += layer1[k] * weights2[k];
+            output = sigmoid(output);
+            double error = (y[j] / 10.0) - output;
+            double d_output = error * sigmoid_derivative(output);
+
+            vector<double> d_hidden_layer(4);
+            for (size_t k = 0; k < 4; ++k)
+                d_hidden_layer[k] = d_output * weights2[k] * sigmoid_derivative(layer1[k]);
+
+            for (size_t k = 0; k < 4; ++k)
+                weights2[k] += layer1[k] * d_output * learning_rate;
+
+            for (size_t k = 0; k < 9; ++k)
+                for (size_t l = 0; l < 4; ++l)
+                    weights1[k][l] += (X[j][k] / 117) * d_hidden_layer[l] * learning_rate;
+        }
+    }
+
+    vector<double> input_data = {2.0, 7.0, 5.0, 55.0, 5.0, 3.0, 4.0, 0.0, 0.0};
+    cout << "Tahmin: " << predict(weights1, weights2, input_data) << endl;
+
+    vector<double> input_data2 = {18,6.8,1.6,3.8,0,53,6.34,21.12,10.07};
+    cout << "Tahmin: " << predict(weights1, weights2, input_data2) << endl;
+
+    return 0;
+}
+
